@@ -33,7 +33,7 @@ app.get('/talker/:id', (req, res) => {
   }
 });
 
-const validData = (email, password, req, res) => {
+const validData = (email, password, res) => {
   const valid = /\S+@\S+\.\S+/; // https://www.horadecodar.com.br/2020/09/13/como-validar-email-com-javascript/
   if (valid.test(email)) {
     if (password.length >= 6) {
@@ -48,10 +48,10 @@ const validData = (email, password, req, res) => {
   }
 };
 
-const data = (email, password, req, res) => {
+const data = (email, password, res) => {
   if (email) {
     if (password) {
-      validData(email, password, req, res);
+      validData(email, password, res);
     } else {
       res.status(400).json({ message: 'O campo "password" é obrigatório' });
     }
@@ -60,13 +60,9 @@ const data = (email, password, req, res) => {
   }
 };
 
-const valid = (email, password, req, res) => {
-  data(email, password, req, res);
-};
-
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  valid(email, password, req, res);
+  data(email, password, res);
 });
 
 app.listen(PORT, () => {
