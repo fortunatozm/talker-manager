@@ -124,7 +124,8 @@ const validWatchedAt = (req, res) => {
     if (validDate.test(watchedAt)) {
       console.log('valido');
     } else {
-      return res.status(400).json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
+      return res.status(400)
+      .json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
     }
   } else {
     return res.status(400).json({ message: 'O campo "watchedAt" é obrigatório' });
@@ -155,15 +156,15 @@ const talks = (req, res) => {
   }
 };
 
-const pessoa = (req) => {
-  const { id, name, age, talk } = req.body;
-  return {
-    id,
-    name,
-    age,
-    talk,
-   };
-};
+// const pessoa = (req) => {
+//   const { id, name, age, talk } = req.body;
+//   return {
+//     id,
+//     name,
+//     age,
+//     talk,
+//    };
+// };
 
 app.post('/talker', (req, res) => {
   tokens(req, res);
