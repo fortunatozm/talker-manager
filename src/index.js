@@ -13,6 +13,16 @@ app.use(bodyParser.json());
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
 
+const tokens = (req, res) => {
+  const token = req.headers.authorization;
+  // const token = '9999999999999999';
+  if (token) {
+    if (token.length === 16) {
+      return true;
+    } return res.status(401).json({ message: 'Token inválido' });
+  } return res.status(401).json({ message: 'Token não encontrado' });
+};
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
@@ -23,6 +33,21 @@ const path = './src/talker.json';
 app.get('/talker', (req, res) => {
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   return res.status(200).json(dataFile);
+});
+
+app.get('/talker/search', (req, res) => {
+  console.log('Aqui');
+  tokens(req, res);
+  const { q } = req.query;
+  console.log(q);
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
+  console.log(dataFile);
+  const filerSearch = dataFile.filter((search) => search.name.includes(q));
+  if (filerSearch) {
+    res.status(200).json(filerSearch);
+  } else {
+    res.status(200).json(dataFile);
+  }
 });
 
 app.get('/talker/:id', (req, res) => {
@@ -96,16 +121,6 @@ const validAge = (req, res) => {
   }
 };
 
-const tokens = (req, res) => {
-  const token = req.headers.authorization;
-  // const token = '9999999999999999';
-  if (token) {
-    if (token.length === 16) {
-      return true;
-    } return res.status(401).json({ message: 'Token inválido' });
-  } return res.status(401).json({ message: 'Token não encontrado' });
-};
-
 // dd/mm/aaaa - /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/ - https://www.guj.com.br/t/resolvido-como-validar-data-com-java-script/276656
 
 // const validDate = (watchedAt) => {
@@ -155,16 +170,6 @@ const talks = (req, res) => {
     return res.status(400).json({ message: 'O campo "talk" é obrigatório' });
   }
 };
-
-// const pessoa = (req) => {
-//   const { id, name, age, talk } = req.body;
-//   return {
-//     id,
-//     name,
-//     age,
-//     talk,
-//    };
-// };
 
 app.post('/talker', (req, res) => {
   tokens(req, res);
