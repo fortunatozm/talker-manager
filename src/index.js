@@ -190,12 +190,11 @@ app.post('/talker', (req, res) => {
 
 app.delete('/talker/:id', (req, res) => {
   tokens(req, res);
-  // const validToken = tokens(token, res);
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
-  const { id } = Number(req.params);
-  console.log(dataFile, req.params, 'Erro aqui');
-  if (dataFile && id) {
-    const filArray = dataFile.filter((file) => file.id !== id);
+  const { id } = req.params;
+  console.log(dataFile, id, 'Erro aqui');
+  if (dataFile) {
+    const filArray = dataFile.filter((file) => file.id !== Number(id));
     console.log(filArray);
     fs.writeFile(path, JSON.stringify(filArray));
     res.status(204).json();
