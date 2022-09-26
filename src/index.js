@@ -97,8 +97,8 @@ const validAge = (req, res) => {
 };
 
 const tokens = (req, res) => {
-  // const token = req.headers.authorization;
-  const token = '9999999999999999';
+  const token = req.headers.authorization;
+  // const token = '9999999999999999';
   if (token) {
     if (token.length === 16) {
       return true;
@@ -158,26 +158,44 @@ const talks = (req, res) => {
   }
 };
 
+const pessoa = (req) => {
+  const { id, name, age, talk } = req.body;
+  return {
+    id,
+    name,
+    age,
+    talk,
+   };
+};
+
 app.post('/talker', (req, res) => {
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
-  const vec = [...dataFile];
-  const datas = vec.push(req.body);
-  fs.writeFileSync(path, JSON.stringify(datas));
-  // const token = undefined;
-  tokens(req, res);
-  validName(req, res);
-  validAge(req, res);
-  talks(req, res);
-  // res.end();
+  // const vec = [...dataFile];
+  if (dataFile) {
+    const datas = dataFile.push(req.body);
+    const pes = pessoa(req);
+    console.log(pes);
+    fs.writeFileSync(path, JSON.stringify(datas));
+    // const token = undefined;
+    tokens(req, res);
+    validName(req, res);
+    validAge(req, res);
+    talks(req, res);
+    res.status(201).json(pes);
+  } else {
+    res.status(404).json({ message: 'Erro' });
+    // res.end();
+  }
 });
 
 app.delete('/talker/:id', (req, res) => {
   tokens(req, res);
   // const validToken = tokens(token, res);
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
-  if (dataFile) {
-    const param = Number(req.params.id);
-    const filArray = dataFile.filter((file) => file.id !== param);
+  const { id } = Number(req.params);
+  console.log(dataFile, req.params, 'Erro aqui');
+  if (dataFile && id) {
+    const filArray = dataFile.filter((file) => file.id !== id);
     console.log(filArray);
     fs.writeFile(path, JSON.stringify(filArray));
     res.status(204).json();
