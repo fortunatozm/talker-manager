@@ -22,7 +22,7 @@ const path = './src/talker.json';
 
 app.get('/talker', (req, res) => {
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
-  res.status(200).json(dataFile);
+  return res.status(200).json(dataFile);
 });
 
 app.get('/talker/:id', (req, res) => {
@@ -74,10 +74,10 @@ const validName = (req, res) => {
     if (name.length >= 3) {
       console.log(name, 'Nome');
     } else {
-      res.status(400).json({ message: 'O "name" deve ter pelo menos 3 caracteres' });
+      return res.status(400).json({ message: 'O "name" deve ter pelo menos 3 caracteres' });
     }
   } else {
-    res.status(400).json({ message: 'O campo "name" é obrigatório' });
+    return res.status(400).json({ message: 'O campo "name" é obrigatório' });
   }
 };
 
@@ -89,10 +89,10 @@ const validAge = (req, res) => {
     if (bolAge(age)) { 
       console.log(age, 'idade');
     } else {
-      res.status(400).json({ message: 'A pessoa palestrante deve ser maior de idade' });
+      return res.status(400).json({ message: 'A pessoa palestrante deve ser maior de idade' });
     }
   } else {
-    res.status(400).json({ message: 'O campo "age" é obrigatório' });
+    return res.status(400).json({ message: 'O campo "age" é obrigatório' });
   }
 };
 
@@ -102,10 +102,8 @@ const tokens = (req, res) => {
   if (token) {
     if (token.length === 16) {
       return true;
-    } res.status(401).json({ message: 'Token inválido' });
-  } else {
-    res.status(401).json({ message: 'Token não encontrado' });
-  }
+    } return res.status(401).json({ message: 'Token inválido' });
+  } return res.status(401).json({ message: 'Token não encontrado' });
 };
 
 // dd/mm/aaaa - /^[0-9]{2}\/[0-9]{2}\/[0-9]{4}$/ - https://www.guj.com.br/t/resolvido-como-validar-data-com-java-script/276656
@@ -126,26 +124,25 @@ const validWatchedAt = (req, res) => {
     if (validDate.test(watchedAt)) {
       console.log('valido');
     } else {
-      res.status(400).json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
+      return res.status(400).json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
     }
   } else {
-    res.status(400).json({ message: 'O campo "watchedAt" é obrigatório' });
+    return res.status(400).json({ message: 'O campo "watchedAt" é obrigatório' });
   }
 };
 
 const bolRate = (rate) => rate >= 1 && rate <= 5 && Number.isInteger(rate);
-
+const emptyRate = (rate) => rate === null || rate === undefined || rate === '';
 const validRate = (req, res) => {
   const { rate } = req.body.talk;
-  if (rate) {
-    if (bolRate(rate)) {
+  console.log(rate);
+  if (emptyRate(rate)) {
+    return res.status(400).json({ message: 'O campo "rate" é obrigatório' });
+  } if (bolRate(rate)) {
       console.log('correto');
     } else {
-      res.status(400).json({ message: 'O campo "rate" deve ser um inteiro de 1 à 5' });
+      return res.status(400).json({ message: 'O campo "rate" deve ser um inteiro de 1 à 5' });
     }
-  } else {
-    res.status(400).json({ message: 'O campo "rate" é obrigatório' });
-  }
 };
 
 const talks = (req, res) => {
@@ -154,7 +151,7 @@ const talks = (req, res) => {
     validWatchedAt(req, res);
     validRate(req, res);
   } else {
-    res.status(400).json({ message: 'O campo "talk" é obrigatório' });
+    return res.status(400).json({ message: 'O campo "talk" é obrigatório' });
   }
 };
 
@@ -169,34 +166,54 @@ const pessoa = (req) => {
 };
 
 app.post('/talker', (req, res) => {
+  tokens(req, res);
+  validName(req, res);
+  validAge(req, res);
+  talks(req, res);
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
-  // const vec = [...dataFile];
   if (dataFile) {
-    const datas = dataFile.push(req.body);
-    const pes = pessoa(req);
-    console.log(pes);
-    fs.writeFileSync(path, JSON.stringify(datas));
+    const { name, age, talk } = req.body;
+    const id = dataFile.length + 1;
+    dataFile.push({ id, name, age, talk });
+    // const pes = pessoa(req);
+    console.log(dataFile);
+    fs.writeFileSync(path, JSON.stringify(dataFile));
     // const token = undefined;
-    tokens(req, res);
-    validName(req, res);
-    validAge(req, res);
-    talks(req, res);
-    res.status(201).json(pes);
-  } else {
-    res.status(404).json({ message: 'Erro' });
+    return res.status(201).json(dataFile[dataFile.length - 1]);
+  } return res.status(404).json({ message: 'Erro' });
     // res.end();
+});
+
+app.put('/talker/:id', (req, res) => {
+  tokens(req, res);
+  validName(req, res);
+  validAge(req, res);
+  talks(req, res);
+  const { id } = req.params;
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
+  const findId = dataFile.find((talker) => talker.id === Number(id));
+  if (!findId) {
+    return res.status(404).json({ message: 'Pessoa palestrante não encontrada' });
   }
+  const { name, age, talk } = req.body;
+  findId.id = Number(id);
+  findId.name = name;
+  findId.age = age;
+  findId.talk = talk;
+  console.log(dataFile);
+  fs.writeFileSync(path, JSON.stringify(dataFile));
+  res.status(200).json(findId);
 });
 
 app.delete('/talker/:id', (req, res) => {
   tokens(req, res);
   const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   const { id } = req.params;
-  console.log(dataFile, id, 'Erro aqui');
+  console.log(dataFile, 'shshshs');
   if (dataFile) {
     const filArray = dataFile.filter((file) => file.id !== Number(id));
     console.log(filArray);
-    fs.writeFile(path, JSON.stringify(filArray));
+    fs.writeFileSync(path, JSON.stringify(filArray));
     res.status(204).json();
   } else {
     res.status(401).json({ message: 'inválido' });
