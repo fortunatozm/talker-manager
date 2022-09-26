@@ -18,13 +18,15 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
+const path = './src/talker.json';
+
 app.get('/talker', (req, res) => {
-  const dataFile = JSON.parse(fs.readFileSync('./src/talker.json', 'utf8'));
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   res.status(200).json(dataFile);
 });
 
 app.get('/talker/:id', (req, res) => {
-  const dataFile = JSON.parse(fs.readFileSync('./src/talker.json', 'utf8'));
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   const param = Number(req.params.id);
   const filter = dataFile.find(({ id }) => id === Number(param));
   if (filter) {    
@@ -157,10 +159,10 @@ const talks = (req, res) => {
 };
 
 app.post('/talker', (req, res) => {
-  const dataFile = JSON.parse(fs.readFileSync('./src/talker.json', 'utf8'));
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   const vec = [...dataFile];
   const datas = vec.push(req.body);
-  fs.writeFileSync('./src/talker.json', JSON.stringify(datas));
+  fs.writeFileSync(path, JSON.stringify(datas));
   // const token = undefined;
   tokens(req, res);
   validName(req, res);
@@ -172,12 +174,12 @@ app.post('/talker', (req, res) => {
 app.delete('/talker/:id', (req, res) => {
   tokens(req, res);
   // const validToken = tokens(token, res);
-  const dataFile = JSON.parse(fs.readFileSync('./src/talker.json', 'utf8'));
+  const dataFile = JSON.parse(fs.readFileSync(path, 'utf8'));
   if (dataFile) {
     const param = Number(req.params.id);
     const filArray = dataFile.filter((file) => file.id !== param);
     console.log(filArray);
-    fs.writeFile('./src/talker.json', JSON.stringify(filArray));
+    fs.writeFile(path, JSON.stringify(filArray));
     res.status(204).json();
   } else {
     res.status(401).json({ message: 'inválido' });
